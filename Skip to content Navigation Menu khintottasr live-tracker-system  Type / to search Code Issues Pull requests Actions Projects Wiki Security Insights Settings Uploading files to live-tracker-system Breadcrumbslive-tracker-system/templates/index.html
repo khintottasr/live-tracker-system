@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Amazon Live Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background: #121212; color: #fff; padding: 40px; font-family: 'Segoe UI', sans-serif; }
+        .stat-card { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 20px; }
+        .stat-number { font-size: 40px; font-weight: bold; color: #ff9900; }
+        .log-container { background: #000; border: 1px solid #333; border-radius: 8px; height: 400px; overflow-y: auto; padding: 20px; font-family: monospace; }
+        .entry { border-bottom: 1px solid #222; padding: 10px 0; color: #00ff41; font-size: 14px; }
+        .time { color: #888; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-5"><span style="color:#ff9900">Amazon</span> Live Opens Tracking</h2>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="text-muted small text-uppercase">Total Opens</div>
+                    <div id="total-count" class="stat-number">0</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="text-muted small text-uppercase">Unique Visitors</div>
+                    <div id="unique-count" class="stat-number">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-dark border-secondary mt-3">
+            <div class="card-header bg-dark border-secondary text-success">Live Activity Stream</div>
+            <div class="card-body">
+                <div id="log-list" class="log-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fetchStats() {
+            fetch('/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('total-count').innerText = data.total_count;
+                    document.getElementById('unique-count').innerText = data.unique_count;
+                    
+                    const list = document.getElementById('log-list');
+                    if (data.opens.length === 0) {
+                        list.innerHTML = '<div class="text-muted">Waiting for activity...</div>';
+                        return;
+                    }
+                    list.innerHTML = data.opens.map(line => {
+                        const parts = line.split(' | ');
+                        return `<div class="entry"><span class="time">[${parts[0]}]</span> Opened: <b>${parts[1]}</b></div>`;
+                    }).join('');
+                });
+        }
+        setInterval(fetchStats, 2000);
+        fetchStats();
+    </script>
+</body>
+</html>
